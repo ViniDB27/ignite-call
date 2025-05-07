@@ -15,6 +15,11 @@ const eslintConfig = [
     'next/typescript',
     '@rocketseat/eslint-config/react',
   ),
+  {
+    rules: {
+      camelcase: 'off', // Desabilita a regra camelcase
+    },
+  },
 ]
 
 export default eslintConfig
