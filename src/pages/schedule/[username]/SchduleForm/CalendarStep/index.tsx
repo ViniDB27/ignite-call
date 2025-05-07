@@ -12,12 +12,16 @@ import { api } from '@/lib/axios'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 
-interface Availabilit {
+interface Availability {
   possibleTimes: number[]
   availableTimes: number[]
 }
 
-export function CalendarStep() {
+interface CalendarStepProps {
+  readonly onSelectedDateTime: (date: Date) => void
+}
+
+export function CalendarStep({ onSelectedDateTime }: CalendarStepProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const router = useRouter()
@@ -33,7 +37,7 @@ export function CalendarStep() {
     ? dayjs(selectedDate).format('YYYY-MM-DD')
     : null
 
-  const { data: availablity } = useQuery<Availabilit>({
+  const { data: availability } = useQuery<Availability>({
     queryKey: ['availability', selectedDateWithoutTime],
     queryFn: async () => {
       const response = await api.get(`/users/${username}/availability`, {
@@ -47,6 +51,11 @@ export function CalendarStep() {
     enabled: !!selectedDate,
   })
 
+  function handleSelectTime(hour: number) {
+    const dateWithTime = dayjs(selectedDate).set('hour', hour).startOf('hour')
+    onSelectedDateTime(dateWithTime.toDate())
+  }
+
   return (
     <Container isTimePickerOpen={isDateSelected}>
       <Calendar selectedDate={selectedDate} onDateSelected={setSelectedDate} />
@@ -58,11 +67,12 @@ export function CalendarStep() {
           </TimePickerHeader>
 
           <TimePickerList>
-            {availablity?.possibleTimes.map((time) => {
+            {availability?.possibleTimes.map((time) => {
               return (
                 <TimePickerItem
                   key={time}
-                  disabled={!availablity.availableTimes.includes(time)}
+                  disabled={!availability.availableTimes.includes(time)}
+                  onClick={() => handleSelectTime(time)}
                 >
                   {String(time).padStart(2, '0')}:00h
                 </TimePickerItem>
